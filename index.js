@@ -22,7 +22,7 @@ app.use(fileUpload({
 
 // CORS configuration
 const corsOptions = {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000', // Replace with your frontend URL
+    origin: process.env.FRONTEND_URL , // Replace with your frontend URL
     credentials: true, // This allows cookies to be sent with requests
     optionsSuccessStatus: 200
 };
