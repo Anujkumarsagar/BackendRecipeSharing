@@ -29,6 +29,11 @@ const corsOptions = {
 
 // Apply CORS middleware
 app.use(cors(corsOptions));
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    next();
+});
+
 
 // Mount routes
 app.use("/api/auth", require("./routes/Authentication.js"));
