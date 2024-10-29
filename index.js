@@ -35,6 +35,10 @@ app.use("/api/auth", require("./routes/Authentication.js"));
 app.use("/api/category", require("./routes/Category.js"))
 app.use("/api/user", require("./routes/User.js"));
 app.use("/api/recipe", require("./routes/Recipe.js"));
+// Use feedback routes
+app.use('/api/feedback', require("./routes/feedbackRoutes.js"));
+//setting
+app.use("/api/setting", require("./routes/Setting.js"));
 app.use("/api/comment", require("./routes/Comment.js")); // Add this line for comment routes
 
 // Root route

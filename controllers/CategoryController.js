@@ -6,50 +6,53 @@ const Category = require("../models/Category")
 const mongoose = require("mongoose")
 
 
-
 exports.createCategory = async (req, res) => {
     try {
-        //fetch
-        const { name, description } = req.body
+        // Fetch input data
+        const { name, description } = req.body;
         const image = req.files?.image;
 
-        //validate
+        // Validate input
         if (!name || !description) {
+            console.log('Name and description are required:', { name, description });
             return res.status(400).json({ message: 'Name and description are required' });
         }
 
-        //upload image to cloudinary
-        let imageUrl;
+        // Upload image to Cloudinary
+        let imageUrl = null; // Initialize imageUrl
         if (image) {
-            imageUrl = await uploadImageToCloudinary(image, 'categories');
-            if (!imageUrl) {
+            const uploadResult = await uploadImageToCloudinary(image, 'categories');
+            if (!uploadResult || !uploadResult.secure_url) {
                 return res.status(401).json({
                     success: false,
-                    message: 'Failed to upload image to cloudinary'
+                    message: 'Failed to upload image to Cloudinary'
                 });
             }
+            imageUrl = uploadResult.secure_url; // Get the secure URL after successful upload
+            console.log('Image uploaded to Cloudinary:', imageUrl);
         }
 
-        //create a entry in database
+        // Create a new category in the database
         const category = await Category.create({
             name,
             description,
-            image: imageUrl.secure_url || null
+            image: imageUrl // Set the image URL if it exists
         });
 
-        category.save();
-
-        //update in user models
-
-        const token = req.cookies.token;
-        //decode
+        // Update the user's categories
+        const userId = req.user.id; // Get the user ID from the request
         const user = await User.findByIdAndUpdate(
-            { _id: req.user.id },
+            userId,
             { $push: { categories: category._id } },
             { new: true }
         );
 
-        res.status(200).json({
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Respond with the created category
+        return res.status(200).json({
             success: true,
             message: 'Category created successfully',
             category
@@ -188,63 +191,42 @@ exports.updateCategory = async (req, res) => {
 
 // Hint: Remove a category and update related user documents
 
+
+// deleteCategory
 exports.deleteCategory = async (req, res) => {
     try {
-        //fetch
         const categoryId = req.params.id;
 
-        //validate
-        if(!mongoose.Types.ObjectId.isValid(categoryId)){
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid category id'
-            });
+        if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+            return res.status(400).json({ success: false, message: 'Invalid category id' });
         }
-        console.log(categoryId);
-        //fetch category
+
         const category = await Category.findById(categoryId);
 
-        if(!category){
-            return res.status(404).json({
-                success: false,
-                message: 'Category not found'
-            });
+        if (!category) {
+            return res.status(404).json({ success: false, message: 'Category not found' });
         }
 
-        //delete
         await Category.findByIdAndDelete(categoryId);
 
-        //update user
-        const token = req.cookies.token;
+        // Update user
         const user = await User.findByIdAndUpdate(
-            {token},
-            {$pull: {categories: categoryId}},
-            {new: true}
-        );  
+            req.user.id, // Use the correct user id
+            { $pull: { categories: categoryId } },
+            { new: true }
+        );
 
-        // //delete category from cloudinary   
-        // if(category.image){
-        //     await deleteImageFromCloudinary(category.image);
+        // Uncomment if you want to delete the image from Cloudinary
+        if (category.image) {
+            await deleteImageFromCloudinary(category.image);
+        }
 
-        // }
+        return res.status(200).json({ success: true, message: 'Category deleted successfully' });
 
-        return res.status(200).json({
-
-            success: true,
-            message: 'Category deleted successfully',
-            
-        })
-
-        
-
-
-    }catch(error){
-        return res.status(500).json({
-            success: false,
-            message: 'Internal Server Error'
-         });
+    } catch (error) {
+        console.error('Error deleting category:', error);
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
-
 }
 
 

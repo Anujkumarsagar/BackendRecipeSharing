@@ -86,7 +86,7 @@ exports.getAllRecipes = async (req, res) => {
 
 exports.getRecipeById = async (req, res) => {
     try {
-        const recipe = await Recipe.findById(req.params.id).populate('author', 'name').populate('category', 'name');
+        const recipe = await Recipe.findById(req.params.id).populate('author', 'name').populate('category', 'name', 'comment');
         if (!recipe) {
             return res.status(404).json({
                 success: false,

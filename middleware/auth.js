@@ -6,37 +6,32 @@ dotenv.config();
 
 exports.auth = async (req, res, next) => {
     try {
-        console.log("Cookies:", req.cookies);
-        console.log("Authorization header:", req.header("Authorization"));
-
         const token = req.cookies.token || req.header("Authorization")?.replace("Bearer ", "").trim();
 
-        console.log("Extracted token:", token);
-
         if (!token) {
+            console.warn(`Unauthorized access attempt: ${req.ip} tried to access ${req.originalUrl}`);
             return res.status(401).json({
                 success: false,
-                message: "Token Missing",
+                message: "Token missing. Please log in."
             });
         }
 
         try {
-            const decode = jwt.verify(token, process.env.SECRET_KEY);
-            req.user = decode;
-            console.log(req.user);
+            const decoded = jwt.verify(token, process.env.SECRET_KEY);
+            req.user = decoded;
             next();
         } catch (jwtError) {
+            console.warn(`Invalid token attempt from IP: ${req.ip} - ${jwtError.message}`);
             return res.status(401).json({
                 success: false,
-                message: "Invalid token",
+                message: "Invalid token. Please log in again."
             });
         }
-
     } catch (error) {
         console.error("Error in auth middleware:", error);
         return res.status(500).json({
             success: false,
-            message: "Authentication Failed",
+            message: "Internal server error during authentication."
         });
     }
 };

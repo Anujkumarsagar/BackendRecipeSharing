@@ -15,7 +15,7 @@ const {
 } = require("../controllers/User");
 
 // Get profile
-router.get("/profile", auth, getProfile);
+router.get("/profile",auth, getProfile);
 
 // Update user profile
 router.put("/update-profile", auth, updateProfile);
@@ -24,7 +24,7 @@ router.put("/update-profile", auth, updateProfile);
 router.delete("/delete-profile", auth, deleteProfile);
 
 // Get user profile
-router.get("/profile/:userId?", auth, getUserProfile);
+router.get("/profile/:userId?", getUserProfile);
 
 // Get user recipes
 router.get("/recipes/:userId?", auth, getUserRecipes);
@@ -42,10 +42,7 @@ router.get("/favorite-recipes", auth, getFavoriteRecipes);
 router.put("/update-settings", auth, updateUserSettings);
 
 // Get all users
-router.get("/all-users", auth, getAllUsers);
-
-// //do a like
-// router.post("/like", auth, likeRecipe);
+router.get("/all-users", getAllUsers);
 
 module.exports = router;
 
